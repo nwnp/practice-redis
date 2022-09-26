@@ -1,3 +1,5 @@
+import { auth } from "../middlewares/utilities.js";
+
 export const index = (req, res, next) => {
   res.cookie("IndexCookie", "This was set from Index");
   res.render("index", {
@@ -10,11 +12,20 @@ export const index = (req, res, next) => {
 };
 
 export const login = (req, res, next) => {
-  res.render("login", { title: "Login", body: "login" });
+  console.log("here");
+  res.render("login", { title: "Login" });
 };
 
 export const loginProcess = (req, res, next) => {
-  res.send("loginProcess");
+  const { username, password, session } = req.body;
+  const isAuth = auth(username, password, session);
+  res.send(username + password);
+  // const isAuth = auth(username, password, session);
+  // if (isAuth) {
+  //   res.redirect("/chat");
+  // } else {
+  //   res.redirect("/login");
+  // }
 };
 
 export const chat = (req, res, next) => {
