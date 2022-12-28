@@ -4,6 +4,9 @@ const { notFound, error } = require("./middlewares/error-handling");
 const { logger } = require("./middlewares/logging");
 const express = require("express");
 const partials = require("express-partials");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const RedisStore = require("connect-redis")(session);
 const app = express();
 const router = require("./routes");
 
@@ -18,10 +21,33 @@ app.set("view options", { defaultLayout: "layout" });
 
 app.use(logger);
 app.use(express.static(__dirname + "/static"));
+app.use(cookieParser("my-cookie-secret"));
+app.use(
+  session({
+    secret: "my-cookie-secret",
+    saveUninitialized: true,
+    resave: true,
+    store: new RedisStore({
+      url: "redis://localhost",
+    }),
+  })
+);
+app.use(function (req, res, next) {
+  if (req.session.pageCount) req.session.pageCount++;
+  else req.session.pageCount = 1;
+  next();
+});
 app.use("/chat", router.chatRoute);
 app.use("/user", router.userRoute);
 app.get("/", (req, res) => {
-  res.render("index", { layout: "layout", title: "Index" });
+  res.cookie("IndexCookie", "This was set from Index");
+  res.render("index", {
+    layout: "layout",
+    title: "Index",
+    cookie: JSON.stringify(req.cookies),
+    session: JSON.stringify(req.session),
+    signedCookie: JSON.stringify(req.signedCookies),
+  });
 });
 
 app.use(error);
