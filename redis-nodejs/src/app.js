@@ -9,6 +9,9 @@ const session = require("express-session");
 const RedisStore = require("connect-redis")(session);
 const app = express();
 const router = require("./routes");
+const bodyParser = require("body-parser");
+const csurf = require("csurf");
+const { csrf } = require("./middlewares/utilities.js");
 
 const PORT = process.env.SERVER_PORT;
 const ENV = process.env.NODE_ENV;
@@ -19,6 +22,10 @@ app.set("views", __dirname + "/views");
 app.use(partials());
 app.set("view options", { defaultLayout: "layout" });
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(csurf());
+app.use(csrf);
 app.use(logger);
 app.use(express.static(__dirname + "/static"));
 app.use(cookieParser("my-cookie-secret"));
